@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>🎂 Дни рождения | Маркетинг</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg: linear-gradient(135deg, #f5f0ff 0%, #e8e0f0 100%);
+      --card-bg: rgba(255,255,255,0.85);
+      --month-card-bg: white;
+      --text: #2d1b4e;
+      --text-secondary: #6b4d9a;
+      --accent: #4a2d7a;
+      --accent-hover: #5e3d95;
+      --border: rgba(139,107,174,0.15);
+      --li-bg: #faf7ff;
+      --li-hover: #f0e8ff;
+      --modal-bg: white;
+      --input-bg: #fdfbff;
+      --input-border: #e0d5f0;
+      --wish-bg: #faf7ff;
+      --delete-bg: #ffe8e8;
+      --shadow: rgba(74,45,122,0.15);
+      --btn-shadow: rgba(74,45,122,0.1);
+      --countdown-bg: linear-gradient(135deg, #4a2d7a, #6b3fa0);
+      --today-glow: rgba(255,145,0,0.25);
+      --overlay: rgba(30,15,50,0.7);
+    }
+    body.dark {
+      --bg: linear-gradient(135deg, #1a1025 0%, #2d1b3d 100%);
+      --card-bg: rgba(30,18,50,0.9);
+      --month-card-bg: #261840;
+      --text: #e0d5f5;
+      --text-secondary: #b8a0d4;
+      --accent: #9b7fd4;
+      --accent-hover: #b095e8;
+      --border: rgba(155,127,212,0.2);
+      --li-bg: #2d1f45;
+      --li-hover: #3a2858;
+      --modal-bg: #261840;
+      --input-bg: #1f1433;
+      --input-border: #3d2a5c;
+      --wish-bg: #2d1f45;
+      --delete-bg: #3d1f28;
+      --shadow: rgba(0,0,0,0.4);
+      --btn-shadow: rgba(0,0,0,0.3);
+      --countdown-bg: linear-gradient(135deg, #6b3fa0, #9b6fd4);
+      --today-glow: rgba(255,145,0,0.4);
+      --overlay: rgba(0,0,0,0.8);
+    }
+    body {
+      font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+      background:var(--bg);
+      min-height:100vh;
+      padding:20px;
+      color:var(--text);
+      transition:background .4s,color .4s;
+      position:relative;
+      overflow-x:hidden;
+    }
+    body.birthday-mode { background:linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%); }
+    body.dark.birthday-mode { background:linear-gradient(135deg,#2d1a10 0%,#3d2515 100%); }
+    .container { max-width:900px; margin:0 auto; position:relative; z-index:2; }
+    .header-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+    h1 { font-size:2em; color:var(--accent); font-weight:700; letter-spacing:-0.5px; }
+    .theme-toggle { background:var(--card-bg); backdrop-filter:blur(10px); border:2px solid var(--border); border-radius:30px; padding:8px 14px; cursor:pointer; font-size:1.2em; transition:.3s; box-shadow:0 2px 10px var(--btn-shadow); }
+    .theme-toggle:hover { transform:scale(1.05); box-shadow:0 4px 16px var(--shadow); }
+    .subtitle { text-align:center; color:var(--text-secondary); margin-bottom:15px; font-size:1em; background:var(--card-bg); backdrop-filter:blur(10px); padding:6px 18px; border-radius:30px; display:inline-block; position:relative; left:50%; transform:translateX(-50%); white-space:nowrap; }
+    .pin-overlay { position:fixed; top:0;left:0;width:100%;height:100%;background:var(--overlay); backdrop-filter:blur(10px); display:none; justify-content:center; align-items:center; z-index:300; padding:20px; }
+    .pin-overlay.active { display:flex; }
+    .pin-card { background:var(--modal-bg); border-radius:24px; padding:30px 24px; max-width:360px; width:100%; text-align:center; box-shadow:0 25px 60px rgba(0,0,0,.35); }
+    .pin-card h2 { color:var(--accent); margin-bottom:8px; }
+    .pin-input-row { display:flex; justify-content:center; margin:12px 0; }
+    .pin-input-row input { width:120px; padding:14px; font-size:1.6em; text-align:center; border-radius:14px; border:2px solid var(--input-border); background:var(--input-bg); color:var(--text); letter-spacing:8px; font-weight:700; }
+    .pin-error { color:#e57373; font-weight:600; min-height:22px; margin:6px 0; }
+    .countdown-banner { background:var(--countdown-bg); color:#fff; padding:14px 20px; border-radius:20px; text-align:center; margin-bottom:18px; font-weight:600; font-size:1.05em; box-shadow:0 8px 25px var(--shadow); animation:softPulse 2.5s infinite; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; }
+    @keyframes softPulse { 0%,100%{box-shadow:0 8px 25px var(--shadow);} 50%{box-shadow:0 8px 35px rgba(74,45,122,0.55);} }
+    .countdown-banner.today { background:linear-gradient(135deg,#ff6f00,#ff9100); animation:celebratePulse .8s infinite; font-size:1.2em; }
+    @keyframes celebratePulse { 0%,100%{transform:scale(1);box-shadow:0 8px 25px rgba(255,111,0,0.5);} 50%{transform:scale(1.03);box-shadow:0 12px 40px rgba(255,111,0,0.7);} }
+    .urgency-banner { background:#fff3e0; color:#e65100; padding:10px 16px; border-radius:14px; margin-bottom:12px; font-weight:600; font-size:.9em; text-align:center; border:1px solid #ffe0b2; }
+    body.dark .urgency-banner { background:#3d2a10; color:#ffb74d; border-color:#5d3a1a; }
+    .filter-row { display:flex; justify-content:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+    .filter-btn { padding:7px 16px; border:2px solid var(--border); background:var(--card-bg); backdrop-filter:blur(8px); border-radius:25px; cursor:pointer; font-weight:600; font-size:.85em; color:var(--text); transition:.2s; }
+    .filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .month-nav { display:flex; justify-content:center; align-items:center; gap:16px; margin-bottom:14px; }
+    .month-nav button { background:var(--card-bg); border:2px solid var(--border); border-radius:50%; width:38px; height:38px; cursor:pointer; font-size:1.2em; color:var(--text); transition:.2s; display:flex; align-items:center; justify-content:center; }
+    .month-nav button:hover { background:var(--li-hover); }
+    .month-nav span { font-weight:700; font-size:1.1em; color:var(--accent); min-width:140px; text-align:center; }
+    .calendar { background:var(--card-bg); backdrop-filter:blur(18px); border-radius:24px; padding:20px; box-shadow:0 20px 45px var(--shadow); transition:background .4s; }
+    .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; text-align:center; }
+    .day-header { font-weight:700; font-size:.85em; color:var(--text-secondary); padding:6px; }
+    .day-cell { padding:8px 4px; border-radius:10px; min-height:50px; cursor:pointer; transition:.2s; position:relative; font-size:.85em; background:var(--li-bg); border:1px solid transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .day-cell:hover { background:var(--li-hover); border-color:var(--accent); }
+    .day-cell.empty { background:transparent; cursor:default; }
+    .day-cell.empty:hover { background:transparent; border-color:transparent; }
+    .day-cell.today { border:2px solid #ff9100 !important; font-weight:700; }
+    .day-cell.birthday { background:#f3e5ff; border-color:#b89dd4; font-weight:600; }
+    body.dark .day-cell.birthday { background:#3a2560; border-color:#7b5ea7; }
+    .day-cell .bd-emoji { font-size:1.1em; display:block; margin-top:2px; cursor:pointer; transition:.15s; }
+    .day-cell .bd-emoji:hover { transform:scale(1.3); }
+    .birthday-list { display:flex; flex-direction:column; gap:8px; }
+    .birthday-list-item { display:flex; align-items:center; gap:12px; background:var(--li-bg); padding:12px 16px; border-radius:16px; cursor:pointer; transition:.2s; border:1px solid var(--border); }
+    .birthday-list-item:hover { background:var(--li-hover); border-color:var(--accent); }
+    .birthday-list-item .bd-emoji-big { font-size:1.8em; }
+    .birthday-list-item .bd-info { flex:1; }
+    .birthday-list-item .bd-name { font-weight:700; color:var(--text); }
+    .birthday-list-item .bd-date { font-size:.85em; color:var(--text-secondary); display:block; }
+    .birthday-list-item .bd-countdown { font-weight:700; color:var(--accent); font-size:.9em; white-space:nowrap; }
+    .modal-overlay { position:fixed; top:0;left:0;width:100%;height:100%;background:var(--overlay); backdrop-filter:blur(5px); display:none; justify-content:center; align-items:center; z-index:100; padding:20px; }
+    .modal-overlay.active { display:flex; }
+    .modal { background:var(--modal-bg); border-radius:24px; padding:24px 20px; max-width:500px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 25px 60px rgba(0,0,0,.35); position:relative; transition:background .4s; }
+    .modal h2 { color:var(--accent); margin-bottom:4px; font-size:1.4em; }
+    .date-info { color:var(--text-secondary); font-weight:600; margin-bottom:10px; }
+    .close-btn { position:absolute; top:12px; right:16px; background:none; border:none; font-size:1.6em; cursor:pointer; color:var(--text-secondary); line-height:1; }
+    .share-row { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+    .share-btn { background:var(--li-bg); border:1px solid var(--border); padding:6px 12px; border-radius:20px; cursor:pointer; font-size:.8em; font-weight:600; color:var(--text); transition:.2s; }
+    .share-btn:hover { background:var(--li-hover); border-color:var(--accent); }
+    .share-btn.copied { background:#4caf50; color:#fff; border-color:#4caf50; }
+    .wishlist-items { list-style:none; margin:10px 0 16px; }
+    .wishlist-items li { display:flex; align-items:center; gap:10px; background:var(--wish-bg); padding:10px; border-radius:14px; margin-bottom:8px; border:1px solid var(--border); }
+    .wishlist-items img { width:44px; height:44px; border-radius:10px; object-fit:cover; background:var(--li-hover); }
+    .wish-info { flex:1; }
+    .wish-info strong { display:block; color:var(--text); }
+    .wish-info .wish-price { color:var(--accent); font-weight:700; font-size:.9em; }
+    .wish-info a { color:var(--accent); font-size:.8em; word-break:break-all; }
+    .delete-wish { background:var(--delete-bg); border:none; border-radius:8px; padding:5px 10px; cursor:pointer; color:#e57373; font-weight:700; transition:.2s; }
+    .delete-wish:hover { background:#e57373; color:#fff; }
+    .total-price { text-align:right; font-weight:700; color:var(--accent); margin-bottom:10px; font-size:1em; }
+    .add-wish-form { display:flex; flex-direction:column; gap:6px; border-top:2px solid var(--border); padding-top:14px; }
+    .add-wish-form input { padding:9px 12px; border-radius:10px; border:2px solid var(--input-border); background:var(--input-bg); color:var(--text); font-size:.95em; }
+    .add-wish-form input::placeholder { color:var(--text-secondary); opacity:.7; }
+    .btn { background:var(--accent); color:#fff; border:none; padding:11px; border-radius:12px; font-weight:700; cursor:pointer; font-size:.95em; transition:.2s; }
+    .btn:hover { background:var(--accent-hover); }
+    .room-section { margin-bottom:16px; }
+    .room-section label { display:block; font-weight:700; margin-bottom:4px; color:var(--accent); }
+    .room-section input[type="text"], .room-section input[type="number"], .room-section input[type="password"] { width:100%; padding:10px; border-radius:10px; border:2px solid var(--input-border); background:var(--input-bg); color:var(--text); font-size:1em; }
+    .date-inputs { display:flex; gap:8px; }
+    .date-inputs input { flex:1; }
+    .emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; max-height:200px; overflow-y:auto; padding:8px; border-radius:12px; background:var(--li-bg); }
+    .emoji-grid span { font-size:1.5em; text-align:center; cursor:pointer; padding:4px; border-radius:8px; transition:.15s; }
+    .emoji-grid span:hover { background:var(--li-hover); transform:scale(1.2); }
+    .emoji-grid span.selected { background:var(--accent); }
+    .selected-emoji { text-align:center; font-size:3em; margin-top:8px; }
+    .empty-wish { color:var(--text-secondary); text-align:center; padding:15px; font-style:italic; }
+    .view-only-hint { text-align:center; color:var(--text-secondary); font-size:0.85em; margin-top:8px; opacity:0.7; }
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:#333; color:#fff; padding:10px 22px; border-radius:30px; font-weight:600; z-index:400; opacity:0; transition:.35s cubic-bezier(.4,0,.2,1); pointer-events:none; box-shadow:0 8px 25px rgba(0,0,0,.3); }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .toast.success { background:#4caf50; }
+    .toast.error { background:#e57373; }
+    .confetti-container { position:fixed; top:0;left:0;width:100%;height:100%; pointer-events:none; z-index:200; }
+    .confetti-piece { position:absolute; border-radius:3px; animation:fall linear forwards; }
+    @keyframes fall { 0%{transform:translateY(-60px) rotate(0deg) scale(1);opacity:1;} 100%{transform:translateY(105vh) rotate(720deg) scale(.4);opacity:0;} }
+    @media(max-width:500px) {
+      h1{font-size:1.4em;}
+      .header-row{justify-content:center;text-align:center;}
+      .subtitle{font-size:.8em;white-space:normal;padding:5px 12px;}
+      .countdown-banner{font-size:.9em;padding:10px 14px;}
+      .calendar-grid{grid-template-columns:repeat(7,1fr);gap:3px;}
+      .day-cell{padding:4px 2px;min-height:38px;font-size:.75em;}
+      .emoji-grid{grid-template-columns:repeat(6,1fr);}
+      .month-nav span{min-width:120px;font-size:1em;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ПИН-ВХОД -->
+<div class="pin-overlay active" id="pinOverlay">
+  <div class="pin-card">
+    <h2>🔐 Вход в комнату</h2>
+    <p style="color:var(--text-secondary);margin-bottom:16px;">Введи свой ПИН-код</p>
+    <div class="pin-input-row">
+      <input type="password" id="pinInput" maxlength="4" placeholder="****" inputmode="numeric" pattern="[0-9]*">
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <button class="btn" id="pinSubmitBtn" style="width:100%;margin-top:8px;">Войти</button>
+    <p style="font-size:0.75em;color:var(--text-secondary);margin-top:12px;opacity:0.7;">Забыл ПИН? Спроси у создателя</p>
+  </div>
+</div>
+
+<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+<div class="container" id="mainApp" style="display:none;">
+  <div class="header-row">
+    <h1>🎂 Дни рождения</h1>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="theme-toggle" id="themeToggle" title="Тема">☀️</button>
+      <button class="theme-toggle" id="roomBtn" title="Моя комната" style="font-size:1em;">🏠</button>
+      <button class="theme-toggle" id="logoutBtn" title="Выйти" style="font-size:1em;">🚪</button>
+    </div>
+  </div>
+  <div class="subtitle">🗓 Маркетинг</div>
+  <div class="countdown-banner" id="countdownBanner">⏳ Загрузка...</div>
+  <div class="urgency-banner" id="urgencyBanner" style="display:none;"></div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" data-view="grid">📅 Сетка</button>
+    <button class="filter-btn" data-view="list">📋 Список</button>
+  </div>
+
+  <div class="month-nav" id="monthNav">
+    <button id="prevMonth">←</button>
+    <span id="monthLabel">Май 2026</span>
+    <button id="nextMonth">→</button>
+  </div>
+
+  <div class="calendar" id="calendarContainer"></div>
+</div>
+
+<!-- МОДАЛКА ЛИЧНОЙ КОМНАТЫ -->
+<div class="modal-overlay" id="roomOverlay">
+  <div class="modal room-modal">
+    <button class="close-btn" id="closeRoomBtn">&times;</button>
+    <h2>🏠 Моя комната</h2>
+    <div class="room-section">
+      <label>Имя</label>
+      <input type="text" id="editName" placeholder="Твоё имя">
+    </div>
+    <div class="room-section">
+      <label>Дата рождения</label>
+      <div class="date-inputs">
+        <input type="number" id="editDay" placeholder="День" min="1" max="31">
+        <input type="number" id="editMonth" placeholder="Месяц" min="1" max="12">
+        <input type="number" id="editYear" placeholder="Год" min="1950" max="2020">
+      </div>
+      <div style="color:var(--accent);font-weight:600;margin-top:6px;" id="agePreview"></div>
+    </div>
+    <div class="room-section">
+      <label>ПИН-код (4 цифры)</label>
+      <input type="password" id="editPin" maxlength="4" placeholder="****" inputmode="numeric">
+    </div>
+    <div class="room-section">
+      <label>Выбери эмодзи</label>
+      <div class="emoji-grid" id="emojiGrid"></div>
+      <div class="selected-emoji" id="selectedEmoji">😊</div>
+    </div>
+    <button class="btn" id="saveRoomBtn" style="width:100%;">💾 Сохранить</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА ВИШЛИСТА -->
+<div class="modal-overlay" id="wishlistOverlay">
+  <div class="modal">
+    <button class="close-btn" id="closeWishlistBtn">&times;</button>
+    <h2 id="wishlistName"></h2>
+    <div class="date-info" id="wishlistDate"></div>
+    <div class="share-row">
+      <button class="share-btn" id="copyWishlistBtn">🔗 Копировать ссылку</button>
+    </div>
+    <div id="wishlistContainer"></div>
+    <div class="add-wish-form" id="addWishForm">
+      <input type="text" id="wishImage" placeholder="Ссылка на фото (необязательно)">
+      <input type="text" id="wishNameInput" placeholder="Название желания">
+      <input type="text" id="wishLink" placeholder="Ссылка на вещь (необязательно)">
+      <input type="number" id="wishPrice" placeholder="Цена в рублях (необязательно)">
+      <button class="btn" id="addWishBtn">➕ Добавить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+(function() {
+  const defaultProfiles = [
+    { name: "Ноза", month: 1, day: 14, year: null, emoji: "🐱", pin: "1014" },
+    { name: "Юлия", month: 5, day: 15, year: null, emoji: "🌸", pin: "2015" },
+    { name: "Саида", month: 5, day: 17, year: null, emoji: "✨", pin: "3017" },
+    { name: "Катя С", month: 6, day: 6, year: null, emoji: "🎀", pin: "4006" },
+    { name: "Даша", month: 6, day: 24, year: null, emoji: "🦄", pin: "5024" },
+    { name: "Андрей", month: 6, day: 24, year: null, emoji: "🎮", pin: "6024" },
+    { name: "Матвей", month: 7, day: 18, year: null, emoji: "⚽", pin: "7018" },
+    { name: "Ирина", month: 7, day: 20, year: null, emoji: "🌺", pin: "8020" },
+    { name: "Лев", month: 8, day: 5, year: null, emoji: "🦁", pin: "9005" },
+    { name: "Мирвалех", month: 8, day: 9, year: null, emoji: "🌟", pin: "1109" },
+    { name: "Катя К", month: 8, day: 20, year: null, emoji: "💎", pin: "1220" },
+    { name: "Варя К", month: 9, day: 6, year: null, emoji: "🧸", pin: "1306" },
+    { name: "Albert", month: 9, day: 22, year: null, emoji: "🎸", pin: "1422" },
+    { name: "Костян", month: 10, day: 3, year: null, emoji: "🔥", pin: "1510" },
+    { name: "Ульяна", month: 10, day: 16, year: null, emoji: "🦋", pin: "1616" },
+    { name: "Полина", month: 10, day: 25, year: null, emoji: "💖", pin: "1725" },
+    { name: "Варя Л", month: 11, day: 8, year: null, emoji: "🍂", pin: "1808" }
+  ];
+
+  const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const DAYS_SHORT = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  const ALL_EMOJIS = ["😊","😎","🤩","🥳","😇","🤗","😻","🐱","🐶","🦊","🐼","🐨","🐸","🦁","🐯","🐰","🌸","🌺","🌻","🌙","⭐","✨","🔥","💖","💎","🎀","🎈","🎉","🎂","🍕","🍩","🍓","🌮","⚽","🏀","🎮","🎸","🎧","📚","✈️","🚀","🧸","🦄","🍀","🌈","💡","🎯","🦋","🐝","🍂","🎃"];
+  const STORAGE_PROFILES = 'bd_profiles_v2';
+  const STORAGE_WISHLISTS = 'bd_wishlists_v2';
+  const STORAGE_THEME = 'bd_theme';
+
+  let profiles = [];
+  let currentUser = null;
+  let currentView = 'grid';
+  let gridMonth = new Date().getMonth();
+  let gridYear = new Date().getFullYear();
+  let isDark = false;
+  let selectedEmoji = "😊";
+  let viewingPerson = null;
+
+  function loadProfiles() { try { const d=localStorage.getItem(STORAGE_PROFILES); return d?JSON.parse(d):null; } catch(e) { return null; } }
+  function saveProfiles(arr) { localStorage.setItem(STORAGE_PROFILES, JSON.stringify(arr)); }
+  function loadWishlists() { try { const d=localStorage.getItem(STORAGE_WISHLISTS); return d?JSON.parse(d):{}; } catch(e) { return {}; } }
+  function saveWishlists(obj) { localStorage.setItem(STORAGE_WISHLISTS, JSON.stringify(obj)); }
+  function loadTheme() { return localStorage.getItem(STORAGE_THEME)==='dark'; }
+
+  function getPersonKey(p) { return `${p.name}_${p.month}_${p.day}`; }
+  function getWishlist(p) { const w=loadWishlists(); return w[getPersonKey(p)]||[]; }
+  function setWishlist(p, arr) { const w=loadWishlists(); w[getPersonKey(p)]=arr; saveWishlists(w); }
+  function isOwner(person) { return currentUser && getPersonKey(currentUser) === getPersonKey(person); }
+
+  function initProfiles() {
+    let saved = loadProfiles();
+    if (saved && saved.length === defaultProfiles.length) { profiles = saved; }
+    else { profiles = JSON.parse(JSON.stringify(defaultProfiles)); saveProfiles(profiles); }
+  }
+
+  function applyTheme() {
+    if (isDark) { document.body.classList.add('dark'); document.getElementById('themeToggle').textContent='🌙'; }
+    else { document.body.classList.remove('dark'); document.getElementById('themeToggle').textContent='☀️'; }
+    localStorage.setItem(STORAGE_THEME, isDark?'dark':'light');
+  }
+
+  function toast(msg, type='') {
+    const t=document.getElementById('toast'); t.textContent=msg; t.className='toast ' + type + ' show';
+    setTimeout(()=>t.classList.remove('show'),2000);
+  }
+
+  function confetti() {
+    const c=document.getElementById('confettiContainer');
+    const colors=['#ff6f00','#ff9100','#4a2d7a','#7c4dff','#e040fb','#00e676','#ff1744'];
+    for(let i=0;i<100;i++){
+      const p=document.createElement('div'); p.className='confetti-piece';
+      p.style.left=Math.random()*100+'%'; p.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+      p.style.animationDuration=(Math.random()*2+2)+'s'; p.style.animationDelay=Math.random()*1.5+'s';
+      p.style.width=(Math.random()*8+6)+'px'; p.style.height=(Math.random()*8+6)+'px';
+      c.appendChild(p); setTimeout(()=>{if(p.parentNode)p.remove();},3500);
+    }
+  }
+
+  function getAge(day, month, year) {
+    if (!year || !day || !month) return null;
+    const today = new Date();
+    let age = today.getFullYear() - year;
+    const m = today.getMonth() + 1;
+    if (m < month || (m === month && today.getDate() < day)) age--;
+    return age;
+  }
+
+  function getNextBirthday(p) {
+    const now = new Date(); const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let target = new Date(now.getFullYear(), p.month - 1, p.day);
+    if (target < today) target = new Date(now.getFullYear() + 1, p.month - 1, p.day);
+    return { date: target, daysUntil: Math.ceil((target - today) / (1000*60*60*24)) };
+  }
+
+  function sortByNextBD(arr) { return [...arr].sort((a,b)=>getNextBirthday(a).daysUntil-getNextBirthday(b).daysUntil); }
+
+  function updateCountdown() {
+    const banner = document.getElementById('countdownBanner');
+    const today = new Date(); const tm=today.getMonth()+1; const td=today.getDate();
+    const todayBD = profiles.filter(p=>p.month===tm&&p.day===td);
+    if (todayBD.length>0) {
+      banner.innerHTML=`🎉 Сегодня день рождения у ${todayBD.map(p=>p.name).join(' и ')}! Поздравляем! 🎂`;
+      banner.className='countdown-banner today'; confetti();
+    } else {
+      const sorted=sortByNextBD(profiles);
+      if (sorted.length>0) {
+        const nb=getNextBirthday(sorted[0]);
+        banner.innerHTML=`⏳ До дня рождения <strong>${sorted[0].name}</strong> — ${nb.daysUntil} ${word(nb.daysUntil)}`;
+      }
+      banner.className='countdown-banner';
+    }
+  }
+
+  function word(n) {
+    if (n===0) return 'дней (сегодня!)';
+    const l=n%10, l2=n%100;
+    if (l2>=11&&l2<=19) return 'дней';
+    if (l===1) return 'день'; if (l>=2&&l<=4) return 'дня';
+    return 'дней';
+  }
+
+  function updateUrgency() {
+    const b=document.getElementById('urgencyBanner');
+    const sorted=sortByNextBD(profiles);
+    const urgent=sorted.filter(p=>{const d=getNextBirthday(p).daysUntil; return d<=14 && d>0 && getWishlist(p).length===0;}).slice(0,3);
+    if (urgent.length===0) { b.style.display='none'; return; }
+    b.innerHTML=`⚠️ Вишлист пуст: ${urgent.map(p=>`у <strong>${p.name}</strong> (через ${getNextBirthday(p).daysUntil} ${word(getNextBirthday(p).daysUntil)})`).join(', ')}`;
+    b.style.display='block';
+  }
+
+  function renderGrid() {
+    const container=document.getElementById('calendarContainer');
+    document.getElementById('monthNav').style.display='flex';
+    document.getElementById('monthLabel').textContent=`${MONTHS[gridMonth]} ${gridYear}`;
+    const firstDay=new Date(gridYear,gridMonth,1);
+    const lastDay=new Date(gridYear,gridMonth+1,0);
+    const startDow=(firstDay.getDay()+6)%7;
+    const totalDays=lastDay.getDate();
+    const today=new Date();
+    let html='<div class="calendar-grid">';
+    DAYS_SHORT.forEach(d=>html+=`<div class="day-header">${d}</div>`);
+    for(let i=0;i<startDow;i++) html+='<div class="day-cell empty"></div>';
+    for(let d=1;d<=totalDays;d++){
+      const isToday=(today.getFullYear()===gridYear && today.getMonth()===gridMonth && today.getDate()===d);
+      const bds=profiles.filter(p=>p.month===gridMonth+1 && p.day===d);
+      let cls='day-cell';
+      if(isToday) cls+=' today';
+      if(bds.length>0) cls+=' birthday';
+      html+=`<div class="${cls}" data-day="${d}">${d}`;
+      if(bds.length>0) { bds.forEach(b=>{ html+=`<span class="bd-emoji" data-key="${getPersonKey(b)}">${b.emoji||'🎂'}</span>`; }); }
+      html+='</div>';
+    }
+    html+='</div>';
+    container.innerHTML=html;
+    container.querySelectorAll('.bd-emoji').forEach(el=>{
+      el.addEventListener('click',(e)=>{ e.stopPropagation(); const p=profiles.find(x=>getPersonKey(x)===el.dataset.key); if(p) openWishlist(p); });
+    });
+    container.querySelectorAll('.day-cell.birthday').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const d=parseInt(el.dataset.day);
+        const bds=profiles.filter(p=>p.month===gridMonth+1 && p.day===d);
+        if(bds.length===1) openWishlist(bds[0]);
+      });
+    });
+  }
+
+  function renderList() {
+    const container=document.getElementById('calendarContainer');
+    document.getElementById('monthNav').style.display='none';
+    const sorted=sortByNextBD(profiles);
+    const today=new Date(); const tm=today.getMonth()+1; const td=today.getDate();
+    let html='<div class="birthday-list">';
+    sorted.forEach(p=>{
+      const nb=getNextBirthday(p);
+      const isToday=(p.month===tm && p.day===td);
+      const age=getAge(p.day,p.month,p.year);
+      html+=`<div class="birthday-list-item" data-key="${getPersonKey(p)}">
+        <span class="bd-emoji-big">${p.emoji||'🎂'}</span>
+        <div class="bd-info"><span class="bd-name">${p.name} ${age?`(${age} ${ageWord(age)})`:''}</span><span class="bd-date">${p.day} ${MONTHS[p.month-1]}</span></div>
+        ${getWishlist(p).length>0?'<span title="Вишлист заполнен">🎁</span>':''}
+        <span class="bd-countdown">${isToday?'🎉 Сегодня!':`через ${nb.daysUntil} ${word(nb.daysUntil)}`}</span>
+      </div>`;
+    });
+    html+='</div>';
+    container.innerHTML=html;
+    container.querySelectorAll('.birthday-list-item').forEach(el=>{
+      el.addEventListener('click',()=>{ const p=profiles.find(x=>getPersonKey(x)===el.dataset.key); if(p) openWishlist(p); });
+    });
+  }
+
+  function ageWord(a) { const l=a%10, l2=a%100; if(l2>=11&&l2<=19) return 'лет'; if(l===1) return 'год'; if(l>=2&&l<=4) return 'года'; return 'лет'; }
+
+  function renderCalendar() {
+    if(currentView==='grid') renderGrid(); else renderList();
+    updateCountdown(); updateUrgency();
+  }
+
+  function openWishlist(person) {
+    viewingPerson=person;
+    document.getElementById('wishlistName').textContent=`🎁 ${person.name}`;
+    document.getElementById('wishlistDate').textContent=`${person.day} ${MONTHS[person.month-1]}`;
+    document.getElementById('copyWishlistBtn').textContent='🔗 Копировать ссылку';
+    document.getElementById('copyWishlistBtn').classList.remove('copied');
+    
+    const owner = isOwner(person);
+    const addForm = document.getElementById('addWishForm');
+    if (addForm) addForm.style.display = owner ? 'flex' : 'none';
+    
+    renderWishlistItems(person, owner);
+    document.getElementById('wishlistOverlay').classList.add('active');
+  }
+
+  function closeWishlist() { 
+    document.getElementById('wishlistOverlay').classList.remove('active'); 
+    viewingPerson=null; 
+    const addForm = document.getElementById('addWishForm');
+    if (addForm) addForm.style.display = 'flex';
+    renderCalendar(); 
+  }
+
+  function renderWishlistItems(person, owner) {
+    if (owner === undefined) { owner = isOwner(person); }
+    const container=document.getElementById('wishlistContainer');
+    const wishes=getWishlist(person);
+    
+    if(wishes.length===0) { 
+      container.innerHTML='<div class="empty-wish">✨ Пока желаний нет</div>'; 
+      return; 
+    }
+    
+    let total=0, html='<ul class="wishlist-items">';
+    wishes.forEach((w,idx)=>{
+      total+=(w.price||0);
+      html+=`<li>
+        ${w.image?`<img src="${esc(w.image)}" onerror="this.style.display='none'" alt="">`:'<div style="width:44px;height:44px;border-radius:10px;background:var(--li-hover);display:flex;align-items:center;justify-content:center;">📦</div>'}
+        <div class="wish-info">
+          <strong>${esc(w.name||'Без названия')}</strong>
+          ${w.price?`<span class="wish-price">${w.price} ₽</span>`:''}
+          ${w.link?`<a href="${esc(w.link)}" target="_blank" rel="noopener">🔗 ссылка</a>`:''}
+        </div>
+        ${owner ? `<button class="delete-wish" data-idx="${idx}">✕</button>` : ''}
+      </li>`;
+    });
+    html+='</ul>';
+    if(total>0) html+=`<div class="total-price">💰 Итого: ${total} ₽</div>`;
+    if (!owner) { html += '<div class="view-only-hint">👁 Только просмотр. Это не твой вишлист.</div>'; }
+    container.innerHTML=html;
+    
+    if (owner) {
+      container.querySelectorAll('.delete-wish').forEach(b=>b.addEventListener('click',()=>{ 
+        const w=getWishlist(person); 
+        w.splice(parseInt(b.dataset.idx),1); 
+        setWishlist(person,w); 
+        renderWishlistItems(person, true); 
+      }));
+    }
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m]); }
+
+  document.getElementById('copyWishlistBtn').addEventListener('click',()=>{
+    if(!viewingPerson) return;
+    const wishes=getWishlist(viewingPerson);
+    const base=window.location.origin+window.location.pathname;
+    const params=new URLSearchParams();
+    params.set('view',getPersonKey(viewingPerson));
+    if(wishes.length>0) params.set('wishes',JSON.stringify(wishes));
+    navigator.clipboard.writeText(base+'?'+params.toString()).then(()=>{
+      document.getElementById('copyWishlistBtn').textContent='✅ Скопировано!';
+      document.getElementById('copyWishlistBtn').classList.add('copied');
+      toast('🔗 Ссылка скопирована!','success');
+      setTimeout(()=>{ document.getElementById('copyWishlistBtn').textContent='🔗 Копировать ссылку'; document.getElementById('copyWishlistBtn').classList.remove('copied'); },2500);
+    });
+  });
+
+  document.getElementById('addWishBtn').addEventListener('click',()=>{
+    if(!viewingPerson) return;
+    if (!isOwner(viewingPerson)) {
+      toast('❌ Это не твой вишлист!','error');
+      return;
+    }
+    const name=document.getElementById('wishNameInput').value.trim();
+    if(!name) { alert('Введи название'); return; }
+    const wish={ image:document.getElementById('wishImage').value.trim()||null, name:name, link:document.getElementById('wishLink').value.trim()||null, price:parseInt(document.getElementById('wishPrice').value)||null };
+    const w=getWishlist(viewingPerson); w.push(wish); setWishlist(viewingPerson,w);
+    ['wishImage','wishNameInput','wishLink','wishPrice'].forEach(id=>document.getElementById(id).value='');
+    renderWishlistItems(viewingPerson, true); toast('✅ Желание добавлено!','success');
+  });
+
+  function openRoom() {
+    if(!currentUser) return;
+    const p=profiles.find(x=>getPersonKey(x)===getPersonKey(currentUser));
+    if(!p) return;
+    document.getElementById('editName').value=p.name;
+    document.getElementById('editDay').value=p.day;
+    document.getElementById('editMonth').value=p.month;
+    document.getElementById('editYear').value=p.year||'';
+    document.getElementById('editPin').value=p.pin;
+    selectedEmoji=p.emoji||'😊';
+    document.getElementById('selectedEmoji').textContent=selectedEmoji;
+    updateAgePreview(); buildEmojiGrid();
+    document.getElementById('roomOverlay').classList.add('active');
+  }
+
+  function closeRoom() { document.getElementById('roomOverlay').classList.remove('active'); }
+
+  function buildEmojiGrid() {
+    const grid=document.getElementById('emojiGrid'); grid.innerHTML='';
+    ALL_EMOJIS.forEach(e=>{
+      const span=document.createElement('span'); span.textContent=e;
+      if(e===selectedEmoji) span.classList.add('selected');
+      span.addEventListener('click',()=>{ selectedEmoji=e; document.getElementById('selectedEmoji').textContent=e; buildEmojiGrid(); });
+      grid.appendChild(span);
+    });
+  }
+
+  function updateAgePreview() {
+    const d=parseInt(document.getElementById('editDay').value);
+    const m=parseInt(document.getElementById('editMonth').value);
+    const y=parseInt(document.getElementById('editYear').value);
+    const age=getAge(d,m,y);
+    document.getElementById('agePreview').textContent=age?`🎂 Будет ${age} ${ageWord(age)}`:'Введи год рождения';
+  }
+
+  ['editYear','editMonth','editDay'].forEach(id=>document.getElementById(id).addEventListener('input',updateAgePreview));
+
+  document.getElementById('saveRoomBtn').addEventListener('click',()=>{
+    if(!currentUser) return;
+    const name=document.getElementById('editName').value.trim();
+    const day=parseInt(document.getElementById('editDay').value);
+    const month=parseInt(document.getElementById('editMonth').value);
+    const year=parseInt(document.getElementById('editYear').value)||null;
+    const pin=document.getElementById('editPin').value.trim();
+    if(!name||!day||!month) { alert('Заполни имя, день и месяц'); return; }
+    if(day<1||day>31||month<1||month>12) { alert('Неверная дата'); return; }
+    if(!pin||pin.length!==4||!/^\d{4}$/.test(pin)) { alert('ПИН должен быть 4 цифры'); return; }
+    const idx=profiles.findIndex(x=>getPersonKey(x)===getPersonKey(currentUser));
+    if(idx===-1) return;
+    profiles[idx].name=name; profiles[idx].day=day; profiles[idx].month=month; profiles[idx].year=year; profiles[idx].pin=pin; profiles[idx].emoji=selectedEmoji;
+    currentUser=profiles[idx]; saveProfiles(profiles); closeRoom(); renderCalendar(); toast('✅ Профиль сохранён!','success');
+  });
+
+  function attemptLogin() {
+    const pin=document.getElementById('pinInput').value.trim();
+    const err=document.getElementById('pinError');
+    if(pin.length!==4||!/^\d{4}$/.test(pin)) { err.textContent='Введи 4 цифры'; return; }
+    const user=profiles.find(p=>p.pin===pin);
+    if(!user) { err.textContent='Неверный ПИН'; return; }
+    currentUser=user;
+    document.getElementById('pinOverlay').classList.remove('active');
+    document.getElementById('mainApp').style.display='block';
+    document.getElementById('pinInput').value=''; err.textContent='';
+    renderCalendar();
+  }
+
+  function logout() {
+    currentUser=null;
+    viewingPerson=null;
+    document.getElementById('pinOverlay').classList.add('active');
+    document.getElementById('mainApp').style.display='none';
+    document.getElementById('wishlistOverlay').classList.remove('active');
+    document.getElementById('roomOverlay').classList.remove('active');
+  }
+
+  document.getElementById('pinSubmitBtn').addEventListener('click',attemptLogin);
+  document.getElementById('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') attemptLogin(); });
+  document.getElementById('themeToggle').addEventListener('click',()=>{ isDark=!isDark; applyTheme(); });
+  document.getElementById('roomBtn').addEventListener('click',openRoom);
+  document.getElementById('logoutBtn').addEventListener('click',logout);
+  document.getElementById('closeRoomBtn').addEventListener('click',closeRoom);
+  document.getElementById('roomOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('roomOverlay')) closeRoom(); });
+  document.getElementById('closeWishlistBtn').addEventListener('click',closeWishlist);
+  document.getElementById('wishlistOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('wishlistOverlay')) closeWishlist(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') { closeWishlist(); closeRoom(); } });
+
+  document.getElementById('prevMonth').addEventListener('click',()=>{ gridMonth--; if(gridMonth<0){gridMonth=11;gridYear--;} renderGrid(); });
+  document.getElementById('nextMonth').addEventListener('click',()=>{ gridMonth++; if(gridMonth>11){gridMonth=0;gridYear++;} renderGrid(); });
+
+  document.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentView=btn.dataset.view; renderCalendar();
+    });
+  });
+
+  function checkUrl() {
+    const params=new URLSearchParams(window.location.search);
+    const viewKey=params.get('view');
+    if(viewKey && currentUser) {
+      const p=profiles.find(x=>getPersonKey(x)===viewKey);
+      if(p) {
+        const wishesData=params.get('wishes');
+        if(wishesData) { try { const wishes=JSON.parse(wishesData); const existing=getWishlist(p); if(existing.length===0) setWishlist(p,wishes); } catch(e){} }
+        setTimeout(()=>openWishlist(p),600);
+      }
+    }
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  function init() {
+    isDark=loadTheme(); applyTheme(); initProfiles();
+    document.getElementById('pinOverlay').classList.add('active');
+    document.getElementById('mainApp').style.display='none';
+    updateCountdown(); checkUrl();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
